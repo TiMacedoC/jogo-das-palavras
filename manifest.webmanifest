@@ -1,0 +1,13 @@
+{
+  "name": "Roda das Letras",
+  "short_name": "Roda das Letras",
+  "lang": "pt-BR",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0d3634",
+  "theme_color": "#0d3634",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
