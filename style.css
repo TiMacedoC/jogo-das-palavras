@@ -77,9 +77,10 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
 
 .topbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px 16px;
 }
 
 .brand {
@@ -94,7 +95,41 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
   vertical-align: 0.15em;
 }
 
-.topbar-actions { display: flex; gap: 8px; }
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Seletor de layout: Roda | Tabela */
+.layout-switch {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+}
+.layout-switch a {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.layout-switch a:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.layout-switch a[aria-current="page"] {
+  background: var(--ivory);
+  color: var(--ink);
+}
+.layout-switch svg { width: 20px; height: 20px; flex: none; }
 
 .icon-btn {
   width: 48px;
@@ -704,6 +739,15 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
   .stage { aspect-ratio: 1 / 1; }
   .brand { font-size: 1.3rem; }
   .topbar-actions { gap: 6px; }
+  .layout-switch a { padding: 0 10px; }
+  .layout-switch span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 
 @media (orientation: landscape) and (max-height: 540px) {

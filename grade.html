@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Roda das Letras · Grade</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0d3634">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Roda das Letras">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Rubik:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="grade.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1 class="brand">Roda <span>das</span> Letras</h1>
+      <div class="topbar-actions">
+        <nav class="layout-switch" aria-label="Layout">
+          <a href="index.html" data-layout="roda">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+            <span>Roda</span>
+          </a>
+          <a href="grade.html" data-layout="grade" aria-current="page">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5" fill="currentColor"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" fill="currentColor"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" fill="currentColor"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" fill="currentColor"/></svg>
+            <span>Tabela</span>
+          </a>
+        </nav>
+        <button type="button" class="icon-btn" id="btn-rules" aria-label="Como jogar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 9a2.9 2.9 0 1 1 4.1 2.6c-.8.4-1.3 1.1-1.3 2v.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.8" r="1.2" fill="currentColor"/></svg>
+        </button>
+        <button type="button" class="icon-btn" id="btn-sound" aria-label="Som" aria-pressed="true">
+          <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" class="icon-btn" id="btn-fullscreen" aria-label="Tela cheia">
+          <svg class="icon-enter" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg class="icon-exit" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="board">
+      <article class="card card-strip" id="card">
+        <div class="card-text">
+          <p class="card-group" id="card-group"></p>
+          <h2 class="card-title" id="card-title"></h2>
+        </div>
+        <div class="card-actions">
+          <button type="button" class="btn btn-primary" id="btn-draw">Sortear</button>
+          <button type="button" class="btn" id="btn-pick">Escolher</button>
+        </div>
+      </article>
+
+      <section class="tray" aria-label="Letras">
+        <div class="grid" id="grid">
+          <div class="grid-count">
+            <span class="count" id="free-count">23<small>/23</small></span>
+            <span class="grid-count-label">livres</span>
+          </div>
+        </div>
+        <p class="toast" id="toast" role="status" aria-live="polite"></p>
+      </section>
+
+      <aside class="side-col" aria-label="Tempo">
+        <button type="button" class="hub" id="hub" data-name="botão do tempo">
+          <span class="hub-main" id="hub-main"></span>
+          <span class="hub-sub" id="hub-sub"></span>
+        </button>
+
+        <div class="panel">
+          <div class="field">
+            <span class="field-label" id="time-label">Tempo por vez</span>
+            <div class="stepper" role="group" aria-labelledby="time-label">
+              <button type="button" class="step" id="time-minus" aria-label="Menos tempo">−</button>
+              <output class="step-value" id="time-value" aria-live="polite">10<small>s</small></output>
+              <button type="button" class="step" id="time-plus" aria-label="Mais tempo">+</button>
+            </div>
+          </div>
+          <div class="panel-actions">
+            <button type="button" class="btn" id="btn-pause" disabled>Pausar</button>
+            <button type="button" class="btn" id="btn-reset">Reiniciar letras</button>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Escolher categoria -->
+  <div class="overlay" id="picker" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+      <div class="sheet-head">
+        <div class="sheet-heading">
+          <h2 class="sheet-title" id="picker-title">Escolher categoria</h2>
+          <p class="sheet-note"><span id="picker-count"></span> categorias. Escolher uma começa uma rodada nova, com todas as letras livres.</p>
+        </div>
+        <div class="sheet-tools">
+          <button type="button" class="btn btn-primary" id="picker-draw">Sortear</button>
+          <button type="button" class="icon-btn" id="picker-close" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="sheet-body" id="picker-body"></div>
+    </div>
+  </div>
+
+  <!-- Como jogar -->
+  <div class="overlay" id="rules" hidden>
+    <div class="sheet sheet-narrow" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+      <div class="sheet-head">
+        <div class="sheet-heading">
+          <h2 class="sheet-title" id="rules-title">Como jogar</h2>
+          <p class="sheet-note">De 2 a 8 jogadores, em volta do tablet.</p>
+        </div>
+        <div class="sheet-tools">
+          <button type="button" class="icon-btn" id="rules-close" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="sheet-body">
+        <ol class="rules">
+          <li>Sorteie ou escolha uma categoria e toque no botão do tempo para começar.</li>
+          <li>Na sua vez, diga uma palavra da categoria que comece com uma letra livre e toque nessa letra.</li>
+          <li>Toque no botão do tempo para passar a vez. O tempo recomeça para o próximo jogador.</li>
+          <li>Se o tempo acabar antes disso, você está fora da rodada. Quem sobrar por último ganha a rodada.</li>
+        </ol>
+        <p class="rules-note">Tocou na letra errada? Toque nela de novo para soltar, antes de passar a vez.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tempo esgotado -->
+  <div class="overlay overlay-alarm" id="timeout" hidden>
+    <div class="alert" role="alertdialog" aria-modal="true" aria-labelledby="timeout-title" aria-describedby="timeout-text">
+      <p class="alert-big" id="timeout-title">Tempo!</p>
+      <p class="alert-text" id="timeout-text">Quem estava na vez saiu da rodada.</p>
+      <div class="alert-actions">
+        <button type="button" class="btn btn-lg btn-light" id="timeout-next">Próximo jogador</button>
+        <button type="button" class="btn btn-lg btn-outline-light" id="timeout-draw">Sortear outra categoria</button>
+        <button type="button" class="btn btn-lg btn-outline-light" id="timeout-stop">Parar o tempo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Todas as letras usadas -->
+  <div class="overlay" id="done" hidden>
+    <div class="alert" role="alertdialog" aria-modal="true" aria-labelledby="done-title" aria-describedby="done-text">
+      <p class="alert-title" id="done-title">Acabaram as letras!</p>
+      <p class="alert-text" id="done-text">Todas as letras foram usadas nesta rodada.</p>
+      <div class="alert-actions">
+        <button type="button" class="btn btn-lg btn-primary" id="done-reset">Reiniciar letras</button>
+        <button type="button" class="btn btn-lg btn-outline-light" id="done-draw">Sortear outra categoria</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

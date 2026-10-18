@@ -83,7 +83,8 @@ const CATEGORIES = GROUPS.flatMap(group => group.items.map(name => ({ name, grou
 
 const TIME_MIN = 3;
 const TIME_MAX = 60;
-const PREFS_KEY = 'roda-das-letras:prefs';
+const PREFS_KEY = 'roda-das-letras:prefs';     // o index.html lê esta chave para abrir direto na tabela
+const HANDOFF_KEY = 'roda-das-letras:rodada';  // leva a rodada de uma página para a outra ao trocar o layout
 
 const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.6-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg>';
 const DONE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -103,6 +104,7 @@ const state = {
   deadline: 0,
 };
 
+let preferredLayout = 'roda'; // roda | grade
 let raf = 0;
 let lastSecs = 0;
 let shuffling = false;
@@ -128,9 +130,12 @@ const timePlus = $('time-plus');
 const timeValue = $('time-value');
 const freeCount = $('free-count');
 const stage = $('stage');
-const wheel = $('wheel');
+const wheel = $('wheel');   // layout em roda (index.html)
+const grid = $('grid');     // layout em grade (grade.html)
 const ringBar = $('ring-bar');
 const hub = $('hub');
+const hubName = hub.dataset.name || 'botão do meio';
+const LAYOUT = grid ? 'grade' : 'roda';
 const hubMain = $('hub-main');
 const hubSub = $('hub-sub');
 const toastEl = $('toast');
@@ -278,13 +283,47 @@ function loadPrefs() {
     const prefs = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
     if (Number.isInteger(prefs.duration)) state.duration = Math.min(TIME_MAX, Math.max(TIME_MIN, prefs.duration));
     if (typeof prefs.sound === 'boolean') state.sound = prefs.sound;
+    if (prefs.layout === 'roda' || prefs.layout === 'grade') preferredLayout = prefs.layout;
   } catch { /* sem armazenamento: segue com o padrão */ }
 }
 
 function savePrefs() {
   try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify({ duration: state.duration, sound: state.sound }));
+    localStorage.setItem(PREFS_KEY, JSON.stringify({
+      duration: state.duration,
+      sound: state.sound,
+      layout: preferredLayout,
+    }));
   } catch { /* sem armazenamento */ }
+}
+
+// Rodada deixada pela outra página ao trocar o layout. Só vale uma vez.
+function takeHandoff() {
+  try {
+    const raw = sessionStorage.getItem(HANDOFF_KEY);
+    sessionStorage.removeItem(HANDOFF_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function switchLayout(e) {
+  const target = e.currentTarget.dataset.layout;
+  if (target === LAYOUT) {
+    e.preventDefault();
+    return;
+  }
+  preferredLayout = target;
+  savePrefs();
+  try {
+    sessionStorage.setItem(HANDOFF_KEY, JSON.stringify({
+      category: state.category,
+      used: [...state.used],
+      drawn: state.drawn,
+    }));
+  } catch { /* sem armazenamento: a outra página começa uma rodada nova */ }
+  // O link segue para a outra página normalmente.
 }
 
 async function keepAwake() {
@@ -300,16 +339,18 @@ async function keepAwake() {
 function buildKeys() {
   const step = 360 / LETTERS.length;
   LETTERS.forEach((letter, i) => {
-    const angle = (i * step - 90) * Math.PI / 180;
     const key = document.createElement('button');
     key.type = 'button';
     key.className = 'key';
     key.textContent = letter;
     key.setAttribute('aria-label', `Letra ${letter}`);
-    key.style.left = `${50 + 40.5 * Math.cos(angle)}%`;
-    key.style.top = `${50 + 40.5 * Math.sin(angle)}%`;
+    if (wheel) {
+      const angle = (i * step - 90) * Math.PI / 180;
+      key.style.left = `${50 + 40.5 * Math.cos(angle)}%`;
+      key.style.top = `${50 + 40.5 * Math.sin(angle)}%`;
+    }
     onTap(key, () => pressKey(letter));
-    wheel.append(key);
+    (wheel || grid).append(key);
     keyEls.set(letter, key);
   });
 }
@@ -411,6 +452,8 @@ function renderHub() {
 
 function renderRing() {
   const fraction = state.phase === 'idle' ? 1 : Math.max(0, state.remaining / state.turnMs);
+  hub.style.setProperty('--progress', fraction.toFixed(4));
+  if (!ringBar) return;
   ringBar.style.strokeDashoffset = String(100 * (1 - fraction));
   ringBar.classList.toggle('is-urgent', state.phase === 'running' && state.remaining <= 3000);
   ringBar.classList.toggle('is-empty', fraction <= 0);
@@ -536,11 +579,11 @@ function pressKey(letter) {
 
   if (state.phase === 'idle') {
     restartAnimation(hub, 'is-nudged');
-    toast('Toque no botão do meio para começar');
+    toast(`Toque no ${hubName} para começar`);
     return;
   }
   if (state.phase === 'paused') {
-    toast('O tempo está pausado. Toque no meio para continuar');
+    toast(`O tempo está pausado. Toque no ${hubName} para continuar`);
     return;
   }
   if (state.phase !== 'running') return;
@@ -710,7 +753,8 @@ async function toggleFullscreen() {
 
 /* ================= Início ================= */
 
-function start(saved = {}) {
+function start(hotData = {}) {
+  const saved = { ...takeHandoff(), ...hotData };
   loadPrefs();
   buildKeys();
   buildPicker();
@@ -718,7 +762,10 @@ function start(saved = {}) {
   const first = Number.isInteger(saved.category) && CATEGORIES[saved.category]
     ? saved.category
     : Math.floor(Math.random() * CATEGORIES.length);
-  state.drawn = [first];
+  state.drawn = Array.isArray(saved.drawn)
+    ? saved.drawn.filter(i => Number.isInteger(i) && CATEGORIES[i])
+    : [];
+  if (!state.drawn.includes(first)) state.drawn.push(first);
   newRound(first);
   if (Array.isArray(saved.used)) {
     saved.used.filter(letter => LETTERS.includes(letter)).forEach(letter => state.used.add(letter));
@@ -732,6 +779,7 @@ function start(saved = {}) {
   guardedClick(btnReset, resetLetters);
   btnPick.addEventListener('click', openPicker);
   btnRules.addEventListener('click', openRules);
+  document.querySelectorAll('[data-layout]').forEach(link => link.addEventListener('click', switchLayout));
   btnPause.addEventListener('click', () => (state.phase === 'paused' ? resume() : pause()));
   holdToRepeat(timeMinus, -1);
   holdToRepeat(timePlus, 1);
@@ -794,8 +842,10 @@ function start(saved = {}) {
     else if (state.phase === 'running' || state.phase === 'paused') keepAwake();
   });
 
-  new ResizeObserver(fitWheel).observe(stage);
-  fitWheel();
+  if (wheel) {
+    new ResizeObserver(fitWheel).observe(stage);
+    fitWheel();
+  }
 }
 
 // Quando a página roda como Artifact do Claude, preserva a rodada ao atualizar a página publicada.
